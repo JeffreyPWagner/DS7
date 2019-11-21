@@ -1,5 +1,3 @@
-package server;
-
 import java.util.Scanner;
 
 public class ServerInputHandler extends Thread {
@@ -17,11 +15,13 @@ public class ServerInputHandler extends Thread {
                     }
                 } else if (command.equalsIgnoreCase("quit")) {
                     ServerMain.running = false;
+                    ServerMain.servSock.close();
                     running = false;
                 } else {
                     System.out.println("unknown command");
                 }
             }
+            scnr.close();
         } catch (Exception e) {
             System.out.println(e);
         }

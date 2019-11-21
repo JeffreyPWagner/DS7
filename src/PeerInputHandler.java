@@ -1,7 +1,3 @@
-package peer;
-
-import server.ServerMain;
-
 import java.util.Scanner;
 
 public class PeerInputHandler extends Thread {
@@ -19,6 +15,7 @@ public class PeerInputHandler extends Thread {
                     }
                 } else if (command.equalsIgnoreCase("quit")) {
                     PeerMain.running = false;
+                    PeerMain.servSock.close();
                     running = false;
                 } else {
                     System.out.println("unknown command");

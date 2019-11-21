@@ -1,5 +1,3 @@
-package server;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
@@ -15,6 +13,7 @@ public class PeerHandler extends Thread {
             inputStream = new DataInputStream(socket.getInputStream());
             outputStream = new DataOutputStream(socket.getOutputStream());
             peerAddress = socket.getRemoteSocketAddress().toString();
+            peerAddress = peerAddress.substring(1, peerAddress.indexOf(":"));
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -31,6 +30,7 @@ public class PeerHandler extends Thread {
                 outputStream.writeUTF(neighbor);
                 outputStream.flush();
             }
+            ServerMain.peers.add(peerAddress);
             boolean running = true;
             while (running) {
                 String command = inputStream.readUTF();
