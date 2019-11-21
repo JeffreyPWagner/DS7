@@ -14,6 +14,7 @@ public class ServerInputHandler extends Thread {
                         System.out.println(peer);
                     }
                 } else if (command.equalsIgnoreCase("quit")) {
+                    System.exit(0);
                     ServerMain.running = false;
                     ServerMain.servSock.close();
                     running = false;
@@ -23,7 +24,6 @@ public class ServerInputHandler extends Thread {
             }
             scnr.close();
         } catch (Exception e) {
-            System.out.println(e);
         }
     }
 }

@@ -7,16 +7,18 @@ public class NeighborHandler extends Thread {
     private DataInputStream inputStream;
     private DataOutputStream outputStream;
     private String neighborAddress;
+    private Socket socket;
+    boolean extra = false;
 
     public NeighborHandler(Socket socket) {
         try {
+            this.socket = socket;
             inputStream = new DataInputStream(socket.getInputStream());
             outputStream = new DataOutputStream(socket.getOutputStream());
             neighborAddress = socket.getRemoteSocketAddress().toString();
             neighborAddress = neighborAddress.substring(1, neighborAddress.indexOf(":"));
             PeerMain.neighbors.add(neighborAddress);
         } catch (Exception e) {
-            System.out.println(e);
         }
     }
 
@@ -24,20 +26,24 @@ public class NeighborHandler extends Thread {
         try {
             outputStream.writeUTF("disconnecting");
             outputStream.flush();
+            socket.close();;
+
         } catch (Exception e) {
-            System.out.println(e);
         }
     }
 
     public void run() {
         try {
             if (PeerMain.neighbors.size() > 3) {
+                extra = true;
                 PeerMain.neighbors.remove(neighborAddress);
                 Random randomGen = new Random();
                 String neighbor = PeerMain.neighbors.get(randomGen.nextInt(PeerMain.neighbors.size()));
                 outputStream.writeUTF(neighbor);
                 outputStream.flush();
             } else {
+                outputStream.writeUTF("confirmed");
+                outputStream.flush();
                 PeerMain.handlers.add(this);
                 boolean running = true;
                 while (running) {
@@ -53,7 +59,14 @@ public class NeighborHandler extends Thread {
                 }
             }
         } catch (Exception e) {
-            System.out.println(e);
+        } finally {
+            if (extra) {
+                PeerMain.neighbors.remove(neighborAddress);
+                System.out.println(neighborAddress + " forwarded to neighbor");
+            } else {
+                PeerMain.neighbors.remove(neighborAddress);
+                System.out.println(neighborAddress + " has disconnected");
+            }
         }
     }
 }

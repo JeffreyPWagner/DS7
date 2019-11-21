@@ -6,6 +6,7 @@ public class ServerMain {
     public static boolean running = true;
     public static List<String> peers = new ArrayList<>();
     public static ServerSocket servSock;
+    public static ArrayList<PeerHandler> handlers = new ArrayList<>();;
 
     public static void main(String[] args) {
         try {
@@ -14,12 +15,13 @@ public class ServerMain {
             ServerInputHandler serverInputHandler = new ServerInputHandler();
             serverInputHandler.start();
             while (running) {
-                System.out.println("Listening for peer...");
                 Socket socket = servSock.accept();
-                System.out.println("peer connected");
+                System.out.println("New peer connected");
                 PeerHandler handler = new PeerHandler(socket);
                 handler.start();
             }
+            System.out.println("exiting");
+            System.exit(0);
         } catch (Exception e) {
         }
     }

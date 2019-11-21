@@ -10,8 +10,10 @@ public class PeerMain {
     public static List<NeighborHandler> handlers = new ArrayList<>();
     public static ServerSocket servSock;
     static DataOutputStream outputStream;
-    static String connectTo;
-    static Socket neighborSock;
+    public static String connectTo;
+    public static Socket neighborSock = null;
+    static NeighborClientHandler neighborClient;
+    public static final Object lock = new Object();
 
     public static void main(String[] args) {
         try {
@@ -24,9 +26,19 @@ public class PeerMain {
             DataInputStream inputStream = new DataInputStream(sock.getInputStream());
             outputStream = new DataOutputStream(sock.getOutputStream());
             connectTo = inputStream.readUTF();
-            System.out.println(connectTo);
             if (!connectTo.equalsIgnoreCase("first peer")) {
-                neighborSock = new Socket(connectTo, 33332);
+                synchronized (lock) {
+                    while (neighborSock == null) {
+                        System.out.println("Attempting to connect to: " + connectTo);
+                        neighborSock = new Socket(connectTo, 33332);
+                        neighborClient = new NeighborClientHandler(neighborSock);
+                        neighborClient.start();
+                        lock.wait();
+                    }
+                }
+                System.out.println("connection successful");
+            } else {
+                System.out.println("I am the first peer");
             }
             while (running) {
                 Socket socket = servSock.accept();
@@ -35,22 +47,19 @@ public class PeerMain {
             }
 
         } catch (Exception e) {
-            System.out.println(e);
         } finally {
             try {
                 outputStream.writeUTF("close");
                 outputStream.flush();
-                if (!connectTo.equalsIgnoreCase("first peer")) {
-                    DataOutputStream neighborOutputStream = new DataOutputStream(neighborSock.getOutputStream());
-                    neighborOutputStream.writeUTF("disconnecting");
-                    outputStream.flush();
+                if (!connectTo.equalsIgnoreCase("first peer") && neighborClient.isAlive()) {
+                    neighborClient.disconnect();
+                    neighborClient.interrupt();
                 }
                 for (NeighborHandler h : handlers) {
                     h.disconnect();
                     h.interrupt();
                 }
             } catch (Exception e) {
-
             }
         }
     }

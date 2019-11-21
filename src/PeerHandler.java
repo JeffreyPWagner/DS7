@@ -4,16 +4,20 @@ import java.net.Socket;
 import java.util.Random;
 
 public class PeerHandler extends Thread {
-    private DataInputStream inputStream;
-    private DataOutputStream outputStream;
+    public DataInputStream inputStream;
+    public DataOutputStream outputStream;
     private String peerAddress;
+    public Socket socket;
+    public boolean running;
 
     public PeerHandler(Socket socket) {
         try {
+            this.socket = socket;
             inputStream = new DataInputStream(socket.getInputStream());
             outputStream = new DataOutputStream(socket.getOutputStream());
             peerAddress = socket.getRemoteSocketAddress().toString();
             peerAddress = peerAddress.substring(1, peerAddress.indexOf(":"));
+            ServerMain.handlers.add(this);
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -31,17 +35,18 @@ public class PeerHandler extends Thread {
                 outputStream.flush();
             }
             ServerMain.peers.add(peerAddress);
-            boolean running = true;
+            running = true;
             while (running) {
+
                 String command = inputStream.readUTF();
                 if (command.equalsIgnoreCase("close")) {
-                    ServerMain.peers.remove(peerAddress);
-                    System.out.println(peerAddress + " has disconnected");
                     running = false;
                 }
             }
         } catch (Exception e) {
-            System.out.println(e);
+        } finally {
+            ServerMain.peers.remove(peerAddress);
+            System.out.println(peerAddress + " has disconnected");
         }
     }
 }
