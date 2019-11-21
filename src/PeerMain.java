@@ -3,6 +3,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class PeerMain {
     public static boolean running = true;
@@ -17,11 +18,14 @@ public class PeerMain {
 
     public static void main(String[] args) {
         try {
+            System.out.println("Enter server IP");
+            Scanner scnr = new Scanner(System.in);
+            String centralIP = scnr.nextLine();
             servSock = new ServerSocket(33332);
             System.out.println("Peer coming online...");
             PeerInputHandler peerInputHandler = new PeerInputHandler();
             peerInputHandler.start();
-            Socket sock = new Socket("35.39.165.63", 33333);
+            Socket sock = new Socket(centralIP, 33333);
             System.out.println("Connected to central server");
             DataInputStream inputStream = new DataInputStream(sock.getInputStream());
             outputStream = new DataOutputStream(sock.getOutputStream());
